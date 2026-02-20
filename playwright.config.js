@@ -4,6 +4,9 @@ import path from 'path';
 export default defineConfig({
   testDir: './services-tests',
   timeout: 30000,
+  use: {
+    baseURL: 'https://accqa.axity.com'
+  },
   fullyParallel: false,
 
   projects: [

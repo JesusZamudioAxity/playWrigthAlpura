@@ -1,22 +1,12 @@
 import { test, expect } from '../fixtures/api.fixture.js';
-import { API_BASE_URL } from '../config/api.config.js';
 
-test('Smoke - Obtener catalogs correctamente', async ({ request, authToken }) => {
+test('Smoke - Obtener catalogs correctamente', async ({ apiClient }) => {
 
-  const response = await request.get(
-    `${API_BASE_URL}/api/apex/catalogs`,
-    {
-      headers: {
-        Authorization: `Bearer ${authToken}`
-      }
-    }
-  );
+  const response = await apiClient.get('/api/apex/catalogs');
 
   expect(response.status()).toBe(200);
 
   const body = await response.json();
 
   expect(body.success).toBe(true);
-  expect(body.code).toBe(0);
-  expect(Array.isArray(body.response)).toBeTruthy();
 });

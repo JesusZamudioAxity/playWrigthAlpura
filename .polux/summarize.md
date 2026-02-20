@@ -40,23 +40,62 @@ The content is organized as follows:
 
 # Directory Structure
 ```
+.gitignore
 package.json
 playwright.config.js
 README.md
-services-tests/config/api.config.js
 services-tests/contracts/catalogs.contract.spec.js
+services-tests/core/api.client.js
 services-tests/fixtures/api.fixture.js
 services-tests/helpers/auth.manager.js
+services-tests/helpers/validateSchema.js
 services-tests/regression/catalogs.regression.spec.js
 services-tests/schemas/catalogs.schema.js
 services-tests/smoke/auth.smoke.spec.js
-services-tests/smoke/catalogs.somke.spec.js
-test-results/.last-run.json
-ui-tests/playwright.config.js
+services-tests/smoke/catalogs.smoke.spec.js
 ui-tests/tests/login/login.spec.js
 ```
 
 # Files
+
+## File: services-tests/core/api.client.js
+```javascript
+export class ApiClient {
+⋮----
+async get(path) {
+return this.request.get(path, {
+headers: this._headers()
+⋮----
+async post(path, body) {
+return this.request.post(path, {
+headers: this._headers(),
+⋮----
+async put(path, body) {
+return this.request.put(path, {
+⋮----
+async delete(path) {
+return this.request.delete(path, {
+⋮----
+_headers() {
+```
+
+## File: services-tests/helpers/validateSchema.js
+```javascript
+const ajv = new Ajv({ allErrors: true });
+export function validateSchema(schema, data) {
+const validate = ajv.compile(schema);
+const valid = validate(data);
+⋮----
+console.error('Schema validation errors:', validate.errors);
+```
+
+## File: .gitignore
+```
+node_modules/
+.env
+playwright-report/
+test-results/
+```
 
 ## File: package.json
 ```json
@@ -71,6 +110,7 @@ ui-tests/tests/login/login.spec.js
   "keywords": [],
   "author": "",
   "license": "ISC",
+   "type": "module",
   "devDependencies": {
     "@playwright/test": "^1.58.2"
   },
@@ -98,31 +138,23 @@ This project contains automated tests for both API and UI layers using Karate an
 - `ui-tests/`: Contains UI tests using Playwright.
 ```
 
-## File: services-tests/config/api.config.js
-```javascript
-
-```
-
 ## File: services-tests/contracts/catalogs.contract.spec.js
 ```javascript
-test('Contract - Validar contrato base de catalogs', async ({ request, authToken }) => {
-const response = await request.get(
-⋮----
+test('Contract - Validar contrato base de catalogs', async ({ apiClient }) => {
+const response = await apiClient.get('/api/apex/catalogs');
 expect(response.status()).toBe(200);
 const body = await response.json();
-expect(typeof body.code).toBe(catalogsSchema.code);
-expect(typeof body.userError).toBe(catalogsSchema.userError);
-expect(typeof body.exceptionMessage).toBe(catalogsSchema.exceptionMessage);
-expect(typeof body.success).toBe(catalogsSchema.success);
-expect(Array.isArray(body.response)).toBeTruthy();
+const valid = validateSchema(catalogsSchema, body);
+expect(valid).toBe(true);
 ```
 
 ## File: services-tests/fixtures/api.fixture.js
 ```javascript
 export const test = base.extend({
-authToken: async ({ request }, use) => {
+apiClient: async ({ request }, use) => {
 const token = await getCachedToken(request);
-await use(token);
+const client = new ApiClient(request, token);
+await use(client);
 ```
 
 ## File: services-tests/helpers/auth.manager.js
@@ -142,9 +174,8 @@ throw new Error('No se encontró access_token en la respuesta');
 
 ## File: services-tests/regression/catalogs.regression.spec.js
 ```javascript
-test('Regression - Validar estructura interna de catalogs', async ({ request, authToken }) => {
-const response = await request.get(
-⋮----
+test('Regression - Validar estructura interna de catalogs', async ({ apiClient }) => {
+const response = await apiClient.get('/api/apex/catalogs');
 expect(response.status()).toBe(200);
 const body = await response.json();
 expect(body.response.length).toBeGreaterThan(0);
@@ -163,34 +194,18 @@ expect(typeof item.exposed).toBe('string');
 
 ## File: services-tests/smoke/auth.smoke.spec.js
 ```javascript
-test('Smoke - Obtener token válido', async ({ authToken }) => {
-expect(authToken).toBeDefined();
-expect(typeof authToken).toBe('string');
+test('Smoke - Autenticación funcional', async ({ apiClient }) => {
+const response = await apiClient.get('/api/apex/catalogs');
+expect(response.status()).toBe(200);
 ```
 
-## File: services-tests/smoke/catalogs.somke.spec.js
+## File: services-tests/smoke/catalogs.smoke.spec.js
 ```javascript
-test('Smoke - Obtener catalogs correctamente', async ({ request, authToken }) => {
-const response = await request.get(
-⋮----
+test('Smoke - Obtener catalogs correctamente', async ({ apiClient }) => {
+const response = await apiClient.get('/api/apex/catalogs');
 expect(response.status()).toBe(200);
 const body = await response.json();
 expect(body.success).toBe(true);
-expect(body.code).toBe(0);
-expect(Array.isArray(body.response)).toBeTruthy();
-```
-
-## File: test-results/.last-run.json
-```json
-{
-  "status": "failed",
-  "failedTests": []
-}
-```
-
-## File: ui-tests/playwright.config.js
-```javascript
-module.exports = defineConfig({
 ```
 
 ## File: ui-tests/tests/login/login.spec.js

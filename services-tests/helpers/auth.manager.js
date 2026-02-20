@@ -1,18 +1,15 @@
-import { API_BASE_URL } from '../config/api.config.js';
-
 let cachedToken = null;
 let tokenExpiration = null;
 
 export async function getCachedToken(request) {
   const now = Date.now();
 
-  // Si ya existe y no expiró, reutilizamos
   if (cachedToken && tokenExpiration && now < tokenExpiration) {
     return cachedToken;
   }
 
   const response = await request.post(
-    `${API_BASE_URL}/api/identity/connect/token`,
+    '/api/identity/connect/token',
     {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -40,7 +37,6 @@ export async function getCachedToken(request) {
 
   cachedToken = body.access_token;
 
-  // Si el API devuelve expires_in lo usamos
   const expiresIn = body.expires_in || 3600;
   tokenExpiration = now + expiresIn * 1000 - 5000;
 

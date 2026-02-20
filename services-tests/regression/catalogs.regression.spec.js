@@ -1,16 +1,8 @@
 import { test, expect } from '../fixtures/api.fixture.js';
-import { API_BASE_URL } from '../config/api.config';
 
-test('Regression - Validar estructura interna de catalogs', async ({ request, authToken }) => {
+test('Regression - Validar estructura interna de catalogs', async ({ apiClient }) => {
 
-  const response = await request.get(
-    `${API_BASE_URL}/api/apex/catalogs`,
-    {
-      headers: {
-        Authorization: `Bearer ${authToken}`
-      }
-    }
-  );
+  const response = await apiClient.get('/api/apex/catalogs');
 
   expect(response.status()).toBe(200);
 
