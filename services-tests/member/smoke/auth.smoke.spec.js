@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/api.fixture.js';
+import { test, expect } from '../../fixtures/api.fixture.js';
 
 test('Smoke - Autenticación funcional', async ({ apiClient }) => {
 

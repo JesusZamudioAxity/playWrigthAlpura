@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/api.fixture.js';
+import { test, expect } from '../../fixtures/api.fixture.js';
 
 test('Regression - Validar estructura interna de catalogs', async ({ apiClient }) => {
 

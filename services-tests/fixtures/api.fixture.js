@@ -7,6 +7,8 @@ export const test = base.extend({
 
     // request YA tiene baseURL aplicado por Playwright
     const token = await getCachedToken(request);
+   // console.log('Using Token:', token); // Imprimir el token para verificar
+    
 
     const client = new ApiClient(request, token);
 

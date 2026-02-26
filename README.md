@@ -1,4 +1,4 @@
-# QA Automation – Estructura del Proyecto
+# QA Automation – Estructura del Proyecto npm run smoke
 
 Este proyecto está diseñado bajo una arquitectura limpia y escalable para pruebas de:
 
@@ -8,7 +8,7 @@ Este proyecto está diseñado bajo una arquitectura limpia y escalable para prue
 - ✅ UI (Playwright)
 - ✅ Validaciones estructurales (JSON Schema)
 
-La estructura está organizada por capas de responsabilidad.
+La estructura está organizada por capas de responsabilidad. Exposicón de las API por swagger o documentacion OPEN API
 
 ---
 
@@ -361,4 +361,11 @@ Esto permite:
 - Separar por dominio (member, invoice, etc.)
 - Implementar multi‑ambiente
 - Implementar multi‑usuario
-- Agregar logging estructurado
+- npx playwright test services-tests/member/smoke/member.check-nip.smoke.spec.js
+npx playwright test services-tests/member/contracts/member.check-nip.contract.spec.js
+npx playwright test services-tests/member/regression/member.check-nip.regression.spec.js
+
+npx playwright test services-tests/member/smoke/member.nip.smoke.spec.js
+npx playwright test services-tests/member/regression/member.register.regression.spec.js
+
+

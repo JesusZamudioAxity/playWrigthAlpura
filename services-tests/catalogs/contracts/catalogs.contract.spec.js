@@ -1,6 +1,6 @@
-import { test, expect } from '../fixtures/api.fixture.js';
-import { catalogsSchema } from '../schemas/catalogs.schema.js';
-import { validateSchema } from '../helpers/validateSchema.js';
+import { test, expect } from '../../fixtures/api.fixture.js';
+import { catalogsSchema } from '../../schemas/catalogs.schema.js';
+import { validateSchema } from '../../helpers/validateSchema.js';
 
 test('Contract - Validar contrato base de catalogs', async ({ apiClient }) => {
 

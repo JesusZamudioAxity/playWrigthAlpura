@@ -8,6 +8,7 @@ export default defineConfig({
     baseURL: 'https://accqa.axity.com'
   },
   fullyParallel: false,
+  workers: 1,
 
   projects: [
     {
@@ -15,14 +16,16 @@ export default defineConfig({
       testMatch: /smoke\/.*\.spec\.js/
     },
     {
+      //name: 'contracts',
+      //testMatch: /contracts\/.*\.spec\.js/,
+      //dependencies: ['smoke']
       name: 'contracts',
-      testMatch: /contracts\/.*\.spec\.js/,
-      dependencies: ['smoke']
+      testMatch: /member\.nip\.contract/,
     },
     {
       name: 'regression',
       testMatch: /regression\/.*\.spec\.js/,
-      dependencies: ['contracts']
+     // dependencies: ['contracts']
     },
     {
       name: 'integration',

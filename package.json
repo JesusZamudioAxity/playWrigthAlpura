@@ -4,7 +4,14 @@
   "description": "This project contains automated tests for both API and UI layers using Playwright.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+     "test": "playwright test",
+     "smoke": "playwright test --project=smoke",
+     "contracts": "playwright test --project=contracts",
+     "regression": "playwright test --project=regression",
+     "integration": "playwright test --project=integration",
+
+     "nip" : "npx playwright test services-tests/member/smoke/member.nip.smoke.spec.js"
+
   },
   "keywords": [],
   "author": "",

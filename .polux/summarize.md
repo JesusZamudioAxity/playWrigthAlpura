@@ -44,49 +44,337 @@ The content is organized as follows:
 package.json
 playwright.config.js
 README.md
-services-tests/contracts/catalogs.contract.spec.js
+services-tests/catalogs/contracts/catalogs.contract.spec.js
+services-tests/catalogs/regression/catalogs.regression.spec.js
+services-tests/catalogs/smoke/catalogs.moke.spec.js
 services-tests/core/api.client.js
 services-tests/fixtures/api.fixture.js
 services-tests/helpers/auth.manager.js
+services-tests/helpers/member.flow.js
 services-tests/helpers/validateSchema.js
-services-tests/regression/catalogs.regression.spec.js
+services-tests/member/contracts/member.activate-email.contract.spec.js
+services-tests/member/contracts/member.check-nip.contract.spec.js
+services-tests/member/contracts/member.nip.contract.spec.js
+services-tests/member/contracts/member.register.contract.spec.js
+services-tests/member/integration/member.full-registration.integration.spec.js
+services-tests/member/regression/member.check-nip.regression.spec.js
+services-tests/member/regression/member.nip.regression.spec.js
+services-tests/member/regression/member.register.regression.spec.js
+services-tests/member/smoke/auth.smoke.spec.js
+services-tests/member/smoke/member.activate-email.smoke.spec.js
+services-tests/member/smoke/member.check-nip.smoke.spec.js
+services-tests/member/smoke/member.nip.smoke.spec.js
+services-tests/member/smoke/member.register.smoke.spec.js
 services-tests/schemas/catalogs.schema.js
-services-tests/smoke/auth.smoke.spec.js
-services-tests/smoke/catalogs.smoke.spec.js
+services-tests/schemas/member.activate-email.schema.js
+services-tests/schemas/member.check-nip.schema.js
+services-tests/schemas/member.nip.schema.js
+services-tests/schemas/member.register.schema.js
 ui-tests/tests/login/login.spec.js
 ```
 
 # Files
 
-## File: services-tests/core/api.client.js
+## File: services-tests/catalogs/contracts/catalogs.contract.spec.js
 ```javascript
-export class ApiClient {
-⋮----
-async get(path) {
-return this.request.get(path, {
-headers: this._headers()
-⋮----
-async post(path, body) {
-return this.request.post(path, {
-headers: this._headers(),
-⋮----
-async put(path, body) {
-return this.request.put(path, {
-⋮----
-async delete(path) {
-return this.request.delete(path, {
-⋮----
-_headers() {
+test('Contract - Validar contrato base de catalogs', async ({ apiClient }) => {
+const response = await apiClient.get('/api/apex/catalogs');
+expect(response.status()).toBe(200);
+const body = await response.json();
+const valid = validateSchema(catalogsSchema, body);
+expect(valid).toBe(true);
 ```
 
-## File: services-tests/helpers/validateSchema.js
+## File: services-tests/catalogs/regression/catalogs.regression.spec.js
 ```javascript
-const ajv = new Ajv({ allErrors: true });
-export function validateSchema(schema, data) {
-const validate = ajv.compile(schema);
-const valid = validate(data);
+test('Regression - Validar estructura interna de catalogs', async ({ apiClient }) => {
+const response = await apiClient.get('/api/apex/catalogs');
+expect(response.status()).toBe(200);
+const body = await response.json();
+expect(body.response.length).toBeGreaterThan(0);
 ⋮----
-console.error('Schema validation errors:', validate.errors);
+expect(typeof item.id).toBe('number');
+expect(typeof item.channel_id).toBe('number');
+expect(typeof item.channel).toBe('string');
+expect(typeof item.type).toBe('string');
+expect(typeof item.exposed).toBe('string');
+```
+
+## File: services-tests/catalogs/smoke/catalogs.moke.spec.js
+```javascript
+test('Smoke - Obtener catalogs correctamente', async ({ apiClient }) => {
+const response = await apiClient.get('/api/apex/catalogs');
+expect(response.status()).toBe(200);
+const body = await response.json();
+expect(body.success).toBe(true);
+```
+
+## File: services-tests/helpers/member.flow.js
+```javascript
+export async function prepareValidRegistration(apiClient, payloads) {
+const nipRes = await generateNip(apiClient, payloads.nip);
+const nipBody = await nipRes.json();
+await checkNip(apiClient, payloads.checkNip);
+const registerRes = await registerAttempt(apiClient, payloads.register);
+```
+
+## File: services-tests/member/contracts/member.activate-email.contract.spec.js
+```javascript
+test('Contract - Validar contrato de respuesta de activación de email', async ({ apiClient }) => {
+const response = await apiClient.get('/api/support/client/activation-code/testnuevoregistro@test.com', {
+⋮----
+expect(response.status()).toBe(200);
+const body = await response.json();
+const valid = validateSchema(activateEmailSchema, body);
+expect(valid).toBe(true);
+```
+
+## File: services-tests/member/contracts/member.check-nip.contract.spec.js
+```javascript
+test('Contract - Validar contrato de respuesta de Check NIP', async ({ apiClient }) => {
+const response = await apiClient.post('/api/support/recovery/nip', {
+⋮----
+expect(response.status()).toBe(200);
+const body = await response.json();
+const valid = validateSchema(checkNipSchema, body);
+expect(valid).toBe(true);
+```
+
+## File: services-tests/member/contracts/member.nip.contract.spec.js
+```javascript
+test('Contract - Validar contrato de respuesta de NIP', async ({ apiClient }) => {
+const response = await apiClient.post('/api/outsider/register/sms/nip', {
+⋮----
+const status = response.status();
+const headers = response.headers();
+const raw = await response.text();
+console.log('Status:', status);
+console.log('Headers:', headers);
+console.log('Raw response:', raw);
+expect(status).toBe(200);
+const body = JSON.parse(raw);
+const valid = validateSchema(nipSchema, body);
+expect(valid).toBe(true);
+```
+
+## File: services-tests/member/contracts/member.register.contract.spec.js
+```javascript
+test('Contract - Validar contrato de respuesta de registro', async ({ apiClient }) => {
+const response = await apiClient.post('/api/identity/register-attempt', {
+⋮----
+expect(response.status()).toBe(200);
+const body = await response.json();
+const valid = validateSchema(registerSchema, body);
+expect(valid).toBe(true);
+```
+
+## File: services-tests/member/integration/member.full-registration.integration.spec.js
+```javascript
+test('Integration - Registro completo', async ({ apiClient }) => {
+const payloads = buildRegistrationFlowPayload();
+await generateNip(apiClient, payloads.nip);
+await checkNip(apiClient, payloads.checkNip);
+await registerAttempt(apiClient, payloads.register);
+await activateEmail(apiClient, payloads.email);
+const completeRes = await completeRegister(apiClient, payloads.complete);
+expect(completeRes.status()).toBe(200);
+⋮----
+function buildRegistrationFlowPayload() {
+⋮----
+async function generateNip(apiClient, payload) {
+const response = await apiClient.post('/api/outsider/register/sms/nip', payload);
+expect(response.status()).toBe(200);
+const body = await response.json();
+expect(body.success).toBe(true);
+⋮----
+async function checkNip(apiClient, payload) {
+const response = await apiClient.post('/api/support/recovery/nip', payload);
+⋮----
+async function registerAttempt(apiClient, payload) {
+const response = await apiClient.post('/api/identity/register-attempt', payload);
+⋮----
+async function activateEmail(apiClient, payload) {
+const response = await apiClient.get(`/api/support/client/activation-code/${payload.email}`, {
+⋮----
+async function completeRegister(apiClient, payload) {
+const response = await apiClient.post('/api/identity/complete-registration', payload);
+```
+
+## File: services-tests/member/regression/member.check-nip.regression.spec.js
+```javascript
+test('Regression - Verificar NIP con diferentes escenarios', async ({ apiClient }) => {
+⋮----
+const response = await apiClient.post('/api/support/recovery/nip', {
+⋮----
+expect(response.status()).toBe(200);
+const body = await response.json();
+expect(body.success).toBe(true);
+expect(body.code).toBe(200);
+expect(typeof body.response).toBe('string');
+expect(body.response).toMatch(/^\d{4}$/);
+```
+
+## File: services-tests/member/regression/member.nip.regression.spec.js
+```javascript
+test('Regression - NIP falla cuando el número ya está registrado', async ({ apiClient }) => {
+const response = await apiClient.post('/api/outsider/register/sms/nip', {
+⋮----
+const status = response.status();
+const raw = await response.text();
+console.log('Status:', status);
+console.log('Raw:', raw);
+expect(status).toBe(400);
+const body = JSON.parse(raw);
+expect(body.Success).toBe(false);
+expect(body.Response).toBeNull();
+expect(body.ExceptionMessage).toContain('ya está asociado');
+expect(body.Code).toBeLessThan(0);
+```
+
+## File: services-tests/member/regression/member.register.regression.spec.js
+```javascript
+test('Register - válido', async ({ apiClient }) => {
+const payloads = buildRegistrationFlowPayload();
+⋮----
+await generateNip(apiClient, payloads.nip);
+await checkNip(apiClient, payloads.checkNip);
+const response = await registerAttempt(apiClient, payloads.register);
+expect(response.status()).toBe(200);
+const body = await response.json();
+console.log('Response Body:', body);
+expect(body.success).toBe(true);
+expect(body.code).toBe(200);
+expect(body.userError).toBe('');
+expect(body.exceptionMessage).toBe('');
+expect(body.response).toBe('Código enviado');
+expect(body.message).toBeNull();
+⋮----
+console.error('Error during registration flow:', error);
+⋮----
+function buildRegistrationFlowPayload() {
+⋮----
+async function generateNip(apiClient, payload) {
+const response = await apiClient.post('/api/outsider/register/sms/nip', payload);
+if (response.status() !== 200) {
+console.error('Failed to generate NIP:', await response.text());
+throw new Error('Failed to generate NIP');
+⋮----
+console.log('NIP Response Body:', body);
+⋮----
+async function checkNip(apiClient, payload) {
+const response = await apiClient.post('/api/support/recovery/nip', payload, {
+⋮----
+console.error('Failed to check NIP:', await response.text());
+throw new Error('Failed to check NIP');
+⋮----
+console.log('Check NIP Response Body:', body);
+⋮----
+async function registerAttempt(apiClient, payload) {
+const response = await apiClient.post('/api/identity/register-attempt', payload);
+⋮----
+console.error('Failed to register attempt:', await response.text());
+throw new Error('Failed to register attempt');
+⋮----
+console.log('Register Attempt Response Body:', body);
+```
+
+## File: services-tests/member/smoke/auth.smoke.spec.js
+```javascript
+test('Smoke - Autenticación funcional', async ({ apiClient }) => {
+const response = await apiClient.get('/api/apex/catalogs');
+expect(response.status()).toBe(200);
+```
+
+## File: services-tests/member/smoke/member.activate-email.smoke.spec.js
+```javascript
+test('Smoke - Activar email correctamente', async ({ apiClient }) => {
+const response = await apiClient.get('/api/support/client/activation-code/testnuevoregistro@test.com', {
+⋮----
+expect(response.status()).toBe(200);
+const body = await response.json();
+expect(body.success).toBe(true);
+expect(body.code).toBe(200);
+expect(body.userError).toBe('');
+expect(body.exceptionMessage).toBe('');
+// Validar que la respuesta contenga un array de códigos de validación
+expect(Array.isArray(body.response)).toBe(true);
+expect(body.response.length).toBeGreaterThan(0);
+// Validar el primer elemento del array
+⋮----
+expect(typeof firstValidation.id).toBe('number');
+expect(typeof firstValidation.validationCode).toBe('string');
+expect(typeof firstValidation.creationDate).toBe('string');
+expect(typeof firstValidation.updateDate).toBe('string');
+expect(firstValidation.email).toBe('testnuevoregistro@test.com');
+expect(firstValidation.channel).toBe('APP');
+```
+
+## File: services-tests/member/smoke/member.check-nip.smoke.spec.js
+```javascript
+test('Smoke - Verificar NIP correctamente', async ({ apiClient }) => {
+const response = await apiClient.post('/api/support/recovery/nip', {
+⋮----
+const status = response.status();
+const body = await response.json();
+expect(status).toBe(200);
+expect(body.success).toBe(true);
+expect(body.code).toBe(200);
+expect(body.userError).toBe('');
+expect(body.exceptionMessage).toBe('');
+expect(typeof body.response).toBe('string');
+expect(body.response).toMatch(/^\d{4}$/);
+```
+
+## File: services-tests/member/smoke/member.nip.smoke.spec.js
+```javascript
+test('Smoke - Enviar NIP correctamente', async ({ apiClient }) => {
+const response = await apiClient.post('/api/outsider/register/sms/nip', {
+⋮----
+const status = response.status();
+const body = await response.json();
+expect(response.status()).toBe(200);
+console.log(body);
+expect(body.success).toBe(true);
+expect(body.code).toBe(201);
+expect(body.userError).toBe('AddPhone');
+expect(body.exceptionMessage).toBe('');
+```
+
+## File: services-tests/member/smoke/member.register.smoke.spec.js
+```javascript
+test('Smoke - Registro funcional', async ({ apiClient }) => {
+const response = await apiClient.post('/api/identity/register-attempt', {
+⋮----
+const status = response.status();
+const body = await response.json();
+console.log('Response Body:', body);
+expect(response.status()).toBe(200);
+expect(body.success).toBe(true);
+expect(body.code).toBe(200);
+expect(body.userError).toBe('');
+expect(body.exceptionMessage).toBe('');
+expect(body.response).toBe('Código enviado');
+expect(body.message).toBeNull();
+```
+
+## File: services-tests/schemas/member.activate-email.schema.js
+```javascript
+
+```
+
+## File: services-tests/schemas/member.check-nip.schema.js
+```javascript
+
+```
+
+## File: services-tests/schemas/member.nip.schema.js
+```javascript
+
+```
+
+## File: services-tests/schemas/member.register.schema.js
+```javascript
+
 ```
 
 ## File: .gitignore
@@ -105,7 +393,14 @@ test-results/
   "description": "This project contains automated tests for both API and UI layers using Playwright.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+     "test": "playwright test",
+     "smoke": "playwright test --project=smoke",
+     "contracts": "playwright test --project=contracts",
+     "regression": "playwright test --project=regression",
+     "integration": "playwright test --project=integration",
+
+     "nip" : "npx playwright test services-tests/member/smoke/member.nip.smoke.spec.js"
+
   },
   "keywords": [],
   "author": "",
@@ -120,6 +415,56 @@ test-results/
 }
 ```
 
+## File: services-tests/core/api.client.js
+```javascript
+export class ApiClient {
+⋮----
+async get(path, additionalHeaders = {}) {
+const headers = { ...this._headers(), ...additionalHeaders };
+return this.request.get(path, {
+⋮----
+async post(path, body, additionalHeaders = {}) {
+⋮----
+return this.request.post(path, {
+⋮----
+async put(path, body, additionalHeaders = {}) {
+⋮----
+console.log('PUT Request Headers:', headers);
+return this.request.put(path, {
+⋮----
+async delete(path, additionalHeaders = {}) {
+⋮----
+console.log('DELETE Request Headers:', headers);
+return this.request.delete(path, {
+⋮----
+_headers() {
+```
+
+## File: services-tests/helpers/validateSchema.js
+```javascript
+const ajv = new Ajv({ allErrors: true });
+export function validateSchema(schema, data) {
+const validate = ajv.compile(schema);
+const valid = validate(data);
+⋮----
+console.error('Schema validation errors:', validate.errors);
+```
+
+## File: services-tests/schemas/catalogs.schema.js
+```javascript
+
+```
+
+## File: ui-tests/tests/login/login.spec.js
+```javascript
+test('User can login successfully', async ({ page }) => {
+await page.goto('/');
+await page.fill('#username', 'testuser');
+await page.fill('#password', 'password123');
+await page.click('button[type="submit"]');
+await expect(page).toHaveURL('/dashboard');
+```
+
 ## File: playwright.config.js
 ```javascript
 export default defineConfig({
@@ -127,25 +472,375 @@ export default defineConfig({
 
 ## File: README.md
 ```markdown
-# README.md
-# Project Title
+# QA Automation – Estructura del Proyecto npm run smoke
 
-This project contains automated tests for both API and UI layers using Karate and Playwright.
+Este proyecto está diseñado bajo una arquitectura limpia y escalable para pruebas de:
 
-## Structure
+- ✅ Servicios (API)
+- ✅ Contratos
+- ✅ Flujos de integración
+- ✅ UI (Playwright)
+- ✅ Validaciones estructurales (JSON Schema)
 
-- `services-tests/`: Contains API tests using Karate.
-- `ui-tests/`: Contains UI tests using Playwright.
-```
+La estructura está organizada por capas de responsabilidad. Exposicón de las API por swagger o documentacion OPEN API
 
-## File: services-tests/contracts/catalogs.contract.spec.js
-```javascript
-test('Contract - Validar contrato base de catalogs', async ({ apiClient }) => {
-const response = await apiClient.get('/api/apex/catalogs');
-expect(response.status()).toBe(200);
-const body = await response.json();
-const valid = validateSchema(catalogsSchema, body);
-expect(valid).toBe(true);
+---
+
+# 📂 Estructura General
+
+qa-automation/
+│
+├── .gitignore
+├── package.json
+├── playwright.config.js
+├── README.md
+│
+├── services-tests/                # 🔹 Pruebas API
+│   │
+│   ├── core/                      # Infraestructura técnica
+│   │   └── api.client.js
+│   │
+│   ├── fixtures/                  # Fixtures personalizados
+│   │   └── api.fixture.js
+│   │
+│   ├── helpers/                   # Utilidades reutilizables
+│   │   ├── auth.manager.js
+│   │   └── validateSchema.js
+│   │
+│   ├── schemas/                   # JSON Schemas por servicio
+│   │   ├── catalogs.schema.js
+│   │   ├── member.schema.js
+│   │   └── invoice.schema.js
+│   │
+│   ├── smoke/                     # Validaciones mínimas críticas
+│   │   ├── auth.smoke.spec.js
+│   │   └── catalogs.smoke.spec.js
+│   │
+│   ├── contracts/                 # Validación estructural
+│   │   └── catalogs.contract.spec.js
+│   │
+│   ├── regression/                # Validación funcional profunda
+│   │   └── catalogs.regression.spec.js
+│   │
+│   ├── integration/               # Flujos multi-endpoint
+│   │   └── catalogs.integration.spec.js
+│   │
+│   └── test-data/                 # Datos reutilizables
+│       ├── members.json
+│       └── invoices.json
+│
+├── ui-tests/                      # 🔹 Pruebas UI
+│   │
+│   ├── pages/                     # Page Object Model
+│   │   ├── LoginPage.js
+│   │   └── CatalogPage.js
+│   │
+│   ├── flows/                     # Flujos de negocio UI
+│   │   └── login.flow.js
+│   │
+│   ├── tests/
+│   │   └── login/login.spec.js
+│   │
+│   └── fixtures/
+│       └── ui.fixture.js
+│
+└── reports/                       # Reportes generados
+
+---
+
+---
+
+# 🔹 Raíz del Proyecto
+
+## package.json
+Contiene dependencias:
+- @playwright/test
+- ajv (validación de contratos)
+
+Define el runtime del framework.
+
+---
+
+## playwright.config.js
+Configura:
+- baseURL
+- timeout
+- proyectos (smoke → contracts → regression → integration)
+- orden de ejecución
+
+Define la estrategia de ejecución por capas.
+
+---
+
+# 📂 services-tests/
+
+Contiene TODAS las pruebas de API.
+
+Está organizada por tipo de validación, no por endpoint.
+
+---
+
+# 📂 services-tests/core/
+
+Infraestructura técnica del framework.
+
+## api.client.js
+
+Responsabilidad:
+- Centralizar llamadas HTTP
+- Agregar automáticamente headers (Authorization)
+- Evitar repetir lógica en tests
+
+Aquí NO van pruebas.
+Aquí NO va lógica de negocio.
+
+Solo infraestructura.
+
+---
+
+# 📂 services-tests/fixtures/
+
+Contiene fixtures personalizados de Playwright.
+
+## api.fixture.js
+
+Responsabilidad:
+- Obtener token
+- Inyectar apiClient
+- Centralizar autenticación
+
+Los tests NO deben:
+- Obtener token manualmente
+- Pasar headers manualmente
+
+---
+
+# 📂 services-tests/helpers/
+
+Contiene utilidades reutilizables.
+
+## auth.manager.js
+
+Responsabilidad:
+- Generar token
+- Cachear token
+- Manejar expiración
+
+## validateSchema.js
+
+Responsabilidad:
+- Validar contratos JSON Schema usando AJV
+- Centralizar validación estructural
+
+Aquí NO van validaciones funcionales.
+
+---
+
+# 📂 services-tests/contracts/
+
+Validación estructural del API.
+
+Objetivo:
+- Detectar cambios en el contrato del backend.
+- Proteger estructura JSON.
+
+Tipos de casos:
+
+✅ Validación de tipos
+✅ Validación de campos requeridos
+✅ Validación de arrays
+✅ Validación de nullables
+
+No se valida:
+❌ Reglas de negocio
+❌ Comportamiento funcional
+
+Se apoya en: scmehas/
+
+---
+
+# 📂 services-tests/schemas/
+
+Contiene JSON Schema por servicio.
+
+Ejemplo:
+- catalogs.schema.js
+
+Define:
+- type
+- properties
+- required
+- estructura completa del response
+
+No contiene lógica.
+
+---
+
+# 📂 services-tests/smoke/
+
+Pruebas mínimas críticas.
+
+Objetivo:
+- Validar que el sistema está disponible.
+- Detectar fallos graves rápidamente.
+
+Tipos de casos:
+
+✅ Endpoint responde 200  
+✅ Autenticación funciona  
+✅ Servicio principal responde  
+
+No se valida:
+❌ Lógica compleja  
+❌ Edge cases  
+❌ Validaciones profundas  
+
+
+# 📂 services-tests/regression/
+
+Validación funcional profunda.
+
+Aquí se validan:
+
+✅ Reglas de negocio  
+✅ Valores esperados  
+✅ Comportamiento de datos  
+✅ Casos positivos  
+✅ Casos negativos  
+✅ Validaciones de campos  
+
+---
+
+# 📂 services-tests/integration/  ✅ (Debe agregarse)
+
+Responsabilidad:
+- Validar flujos completos entre servicios.
+- Simular procesos reales backend.
+
+Ejemplos:
+
+1. Crear usuario
+2. Generar factura
+3. Cancelar factura
+4. Validar estado final
+
+Aquí se prueban:
+
+✅ Flujos multi-endpoint  
+✅ Dependencias entre servicios  
+✅ Impacto de operaciones encadenadas  
+
+No se valida:
+❌ UI
+❌ Solo estructura (eso es contracts)
+
+---
+
+# 📂 ui-tests/
+
+Contiene pruebas E2E de interfaz.
+
+Ejemplo:payclub
+
+
+Aquí se validan:
+
+✅ Flujos reales del usuario
+✅ Interacción con frontend
+✅ Validaciones visuales
+✅ Navegación
+
+No se valida:
+❌ Estructura JSON
+❌ Contratos API internos
+
+---
+
+# 🧠 Influencia del CRUD en la estrategia
+
+CRUD impacta directamente en:
+
+## 🟢 Smoke
+- Validar que GET principal responde.
+
+## 🟡 Contracts
+- Validar estructura de:
+  - GET
+  - POST response
+  - PUT response
+  - DELETE response
+
+## 🔵 Regression
+- Validar reglas de negocio por operación:
+  - POST crea correctamente
+  - PUT actualiza correctamente
+  - DELETE elimina correctamente
+  - GET refleja cambios
+
+## 🟣 Integration
+- Validar flujo completo CRUD:
+  - Crear → Consultar → Actualizar → Validar → Eliminar → Validar eliminación
+
+---
+
+# 📊 Estrategia de Ejecución
+
+Orden correcto:
+
+1️⃣ Smoke  
+2️⃣ Contracts  
+3️⃣ Regression  
+4️⃣ Integration  
+
+Si Smoke falla → se detiene ejecución.
+
+---
+
+# ✅ Tipos de Casos por Capa
+
+| Capa | Tipo de Validación | Ejemplo |
+|------|--------------------|----------|
+| Smoke | Disponibilidad | Status 200 |
+| Contracts | Estructura | Validar schema |
+| Regression | Lógica | Validar reglas |
+| Integration | Flujo | Crear + Actualizar + Eliminar |
+| UI | Experiencia | Login exitoso |
+
+---
+
+# 🎯 Objetivo Arquitectónico
+
+Separar responsabilidades:
+
+- Infraestructura → core/
+- Autenticación → helpers/
+- Estructura → contracts/
+- Lógica → regression/
+- Flujo → integration/
+- Experiencia → ui-tests/
+
+Esto permite:
+
+✅ Escalabilidad  
+✅ Mantenibilidad  
+✅ Bajo acoplamiento  
+✅ Reutilización  
+✅ Orden claro de ejecución  
+
+---
+
+# 🚀 Próximos pasos recomendados
+
+- Crear carpeta integration/
+- Separar por dominio (member, invoice, etc.)
+- Implementar multi‑ambiente
+- Implementar multi‑usuario
+- npx playwright test services-tests/member/smoke/member.check-nip.smoke.spec.js
+npx playwright test services-tests/member/contracts/member.check-nip.contract.spec.js
+npx playwright test services-tests/member/regression/member.check-nip.regression.spec.js
+
+npx playwright test services-tests/member/smoke/member.nip.smoke.spec.js
+npx playwright test services-tests/member/regression/member.register.regression.spec.js
 ```
 
 ## File: services-tests/fixtures/api.fixture.js
@@ -170,50 +865,4 @@ throw new Error(`Error obteniendo token: ${response.status()}`);
 const body = await response.json();
 ⋮----
 throw new Error('No se encontró access_token en la respuesta');
-```
-
-## File: services-tests/regression/catalogs.regression.spec.js
-```javascript
-test('Regression - Validar estructura interna de catalogs', async ({ apiClient }) => {
-const response = await apiClient.get('/api/apex/catalogs');
-expect(response.status()).toBe(200);
-const body = await response.json();
-expect(body.response.length).toBeGreaterThan(0);
-⋮----
-expect(typeof item.id).toBe('number');
-expect(typeof item.channel_id).toBe('number');
-expect(typeof item.channel).toBe('string');
-expect(typeof item.type).toBe('string');
-expect(typeof item.exposed).toBe('string');
-```
-
-## File: services-tests/schemas/catalogs.schema.js
-```javascript
-
-```
-
-## File: services-tests/smoke/auth.smoke.spec.js
-```javascript
-test('Smoke - Autenticación funcional', async ({ apiClient }) => {
-const response = await apiClient.get('/api/apex/catalogs');
-expect(response.status()).toBe(200);
-```
-
-## File: services-tests/smoke/catalogs.smoke.spec.js
-```javascript
-test('Smoke - Obtener catalogs correctamente', async ({ apiClient }) => {
-const response = await apiClient.get('/api/apex/catalogs');
-expect(response.status()).toBe(200);
-const body = await response.json();
-expect(body.success).toBe(true);
-```
-
-## File: ui-tests/tests/login/login.spec.js
-```javascript
-test('User can login successfully', async ({ page }) => {
-await page.goto('/');
-await page.fill('#username', 'testuser');
-await page.fill('#password', 'password123');
-await page.click('button[type="submit"]');
-await expect(page).toHaveURL('/dashboard');
 ```
