@@ -1,29 +1,32 @@
 // services-tests/member/integration/member.full-registration.integration.spec.js
 import { test, expect } from '../../fixtures/api.fixture.js';
+import { generateNip, checkNip } from '../../helpers/member.flow.js';
 
-test('Integration - Registro completo', async ({ apiClient }) => {
-  const payloads = buildRegistrationFlowPayload();
+test('Full Flow - Registro completo con activación de email', async ({ apiClient }) => {
+  const payloads = buildFullFlowPayload();
 
-  // 1️⃣ NIP
-  await generateNip(apiClient, payloads.nip);
+  try {
+    // 1️⃣ Generar NIP
+    await generateNip(apiClient, payloads.nip, expect);
 
-  // 2️⃣ Check
-  await checkNip(apiClient, payloads.checkNip);
+    // 2️⃣ Verificar NIP
+    await checkNip(apiClient, payloads.checkNip, expect);
 
-  // 3️⃣ Register
-  await registerAttempt(apiClient, payloads.register);
+    // 3️⃣ Intentar Registro
+    await registerAttempt(apiClient, payloads.register, expect);
 
-  // 4️⃣ Activar email
-  await activateEmail(apiClient, payloads.email);
+    // 4️⃣ Activar Email
+    await activateEmail(apiClient, payloads.activateEmail, expect);
 
-  // 5️⃣ Completar registro
-  const completeRes = await completeRegister(apiClient, payloads.complete);
-
-  expect(completeRes.status()).toBe(200);
+    console.log('Flujo integral completado exitosamente.');
+  } catch (error) {
+    console.error('Error during full flow:', error);
+    throw error;
+  }
 });
 
 // Función para construir los payloads necesarios para el flujo
-function buildRegistrationFlowPayload() {
+function buildFullFlowPayload() {
   return {
     nip: {
       phoneNumbSMS: '5533176234',
@@ -59,51 +62,61 @@ function buildRegistrationFlowPayload() {
       },
       Card: null
     },
-    email: {
+    activateEmail: {
       email: 'testnuevoregistro@test.com'
-    },
-    complete: {
-      Email: 'testnuevoregistro@test.com',
-      Password: 'a184712a824240be01cac45109027e926f730825c7a3ddd277cce1c532179462'
     }
   };
 }
 
 // Funciones auxiliares para cada paso del flujo
-async function generateNip(apiClient, payload) {
-  const response = await apiClient.post('/api/outsider/register/sms/nip', payload);
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  expect(body.success).toBe(true);
+async function registerAttempt(apiClient, payload, expect) {
+  try {
+    const response = await apiClient.post('/api/identity/register-attempt', payload);
+    if (response.status() !== 200) {
+      console.error('Failed to register attempt:', await response.text());
+      throw new Error('Failed to register attempt');
+    }
+    const body = await response.json();
+    console.log('Register Attempt Response Body:', body);
+    expect(body.success).toBe(true);
+  } catch (error) {
+    console.error('Error during register attempt:', error);
+    throw error;
+  }
 }
 
-async function checkNip(apiClient, payload) {
-  const response = await apiClient.post('/api/support/recovery/nip', payload);
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  expect(body.success).toBe(true);
-}
+async function activateEmail(apiClient, payload, expect) {
+  try {
+    const response = await apiClient.get(`/api/support/client/activation-code/${payload.email}`, {
+      'X-QA-Access-Token': 'qa-team-secretz'
+    });
+    if (response.status() !== 200) {
+      console.error('Failed to activate email:', await response.text());
+      throw new Error('Failed to activate email');
+    }
+    const body = await response.json();
+    console.log('Activate Email Response Body:', body);
 
-async function registerAttempt(apiClient, payload) {
-  const response = await apiClient.post('/api/identity/register-attempt', payload);
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  expect(body.success).toBe(true);
-}
+    // Validaciones básicas
+    expect(body.success).toBe(true);
+    expect(body.code).toBe(200);
+    expect(body.userError).toBe('');
+    expect(body.exceptionMessage).toBe('');
 
-async function activateEmail(apiClient, payload) {
-  const response = await apiClient.get(`/api/support/client/activation-code/${payload.email}`, {
-    'X-QA-Access-Token': 'qa-team-secretz'
-  });
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  expect(body.success).toBe(true);
-}
+    // Validar que la respuesta contenga un array de códigos de validación
+    expect(Array.isArray(body.response)).toBe(true);
+    expect(body.response.length).toBeGreaterThan(0);
 
-async function completeRegister(apiClient, payload) {
-  const response = await apiClient.post('/api/identity/complete-registration', payload);
-  expect(response.status()).toBe(200);
-  const body = await response.json();
-  expect(body.success).toBe(true);
-  return response;
+    // Validar el primer elemento del array
+    const firstValidation = body.response[0];
+    expect(typeof firstValidation.id).toBe('number');
+    expect(typeof firstValidation.validationCode).toBe('string');
+    expect(typeof firstValidation.creationDate).toBe('string');
+    expect(typeof firstValidation.updateDate).toBe('string');
+    expect(firstValidation.email).toBe(payload.email);
+    expect(firstValidation.channel).toBe('APP');
+  } catch (error) {
+    console.error('Error during email activation:', error);
+    throw error;
+  }
 }

@@ -16,20 +16,15 @@ export default defineConfig({
       testMatch: /smoke\/.*\.spec\.js/
     },
     {
-      //name: 'contracts',
-      //testMatch: /contracts\/.*\.spec\.js/,
-      //dependencies: ['smoke']
       name: 'contracts',
       testMatch: /member\.nip\.contract/,
     },
     {
       name: 'regression',
       testMatch: /regression\/.*\.spec\.js/,
-     // dependencies: ['contracts']
     },
     {
       name: 'integration',
       testMatch: /integration\/.*\.spec\.js/,
-      dependencies: ['regression']
     }]
 });
