@@ -23,7 +23,8 @@ test('Regression - Verificar NIP con diferentes escenarios', async ({ apiClient 
     const body = await response.json();
     expect(body.success).toBe(true);
     expect(body.code).toBe(200);
+    expect(body.exceptionMessage).toBe('');
     expect(typeof body.response).toBe('string');
-    expect(body.response).toMatch(/^\d{4}$/); // Verifica que sea un NIP de 4 dígitos
+    expect(body.response).toMatch(/^\d{4}$/); 
   }
 });

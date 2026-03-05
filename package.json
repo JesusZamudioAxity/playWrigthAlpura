@@ -9,9 +9,18 @@
      "contracts": "playwright test --project=contracts",
      "regression": "playwright test --project=regression",
      "integration": "playwright test --project=integration",
-
-     "nip" : "npx playwright test services-tests/member/smoke/member.nip.smoke.spec.js"
-
+     "nip": "npx playwright test services-tests/member/smoke/member.nip.smoke.spec.js",
+     "check-nip-smoke": "npx playwright test services-tests/member/smoke/member.check-nip.smoke.spec.js",
+     "check-nip-contract": "npx playwright test services-tests/member/contracts/member.check-nip.contract.spec.js",
+     "check-nip-regression": "npx playwright test services-tests/member/regression/member.check-nip.regression.spec.js",
+     "register-regression": "npx playwright test services-tests/member/regression/member.register.regression.spec.js",
+     "activate-email-smoke": "npx playwright test services-tests/member/smoke/member.activate-email.smoke.spec.js",
+     "activate-email-regression": "npx playwright test services-tests/member/regression/member.activate-email.regression.spec.js",
+     "full-registration-integration": "npx playwright test services-tests/member/integration/member.full-registration.integration.spec.js",
+     "auth-smoke": "npx playwright test services-tests/member/smoke/auth.smoke.spec.js",
+     "catalogs-contract": "npx playwright test services-tests/catalogs/contracts/catalogs.contract.spec.js",
+     "catalogs-regression": "npx playwright test services-tests/catalogs/regression/catalogs.regression.spec.js",
+     "catalogs-smoke": "npx playwright test services-tests/catalogs/smoke/catalogs.moke.spec.js"
   },
   "keywords": [],
   "author": "",

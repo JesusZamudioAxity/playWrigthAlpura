@@ -13,14 +13,6 @@ test('Smoke - Verificar NIP correctamente', async ({ apiClient }) => {
   //console.log('Response Body:', body);
 
   expect(status).toBe(200);
-
-  // Validaciones adicionales
-  expect(body.success).toBe(true);
-  expect(body.code).toBe(200);
-  expect(body.userError).toBe('');
-  expect(body.exceptionMessage).toBe('');
-  expect(typeof body.response).toBe('string');
-  expect(body.response).toMatch(/^\d{4}$/); // Verifica que sea un NIP de 4 dígitos
 });
 
 

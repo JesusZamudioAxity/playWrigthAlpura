@@ -1,65 +1,70 @@
-// services-tests/member/regression/register.duplicate-email.spec.js
+// services-tests/member/regression/register.valid.spec.js
 import { test, expect } from '../../fixtures/api.fixture.js';
 import { generateNip, checkNip } from '../../helpers/member.flow.js';
 
-test('Register - correo electrónico ya utilizado', async ({ apiClient }) => {
-  const payloads = buildDuplicateEmailPayload();
+test('Register - válido', async ({ apiClient }) => {
+  const payloads = buildRegistrationFlowPayload();
 
   try {
-    // 3️⃣ Intentar Registro con correo duplicado
-    const response = await registerAttempt(apiClient, payloads.register, expect, 404);
+    // 1️⃣ Generar NIP
+    await generateNip(apiClient, payloads.nip, expect);
+
+    // 2️⃣ Verificar NIP
+    await checkNip(apiClient, payloads.checkNip, expect);
+
+    // 3️⃣ Intentar Registro
+    const response = await registerAttempt(apiClient, payloads.register, expect, 200);
 
     // Validar respuesta de registro
-    expect(response.status()).toBe(404); // Cambia el código de estado a 404
+    expect(response.status()).toBe(200);
     const body = await response.json();
     console.log('Response Body:', body);
 
     // Validaciones adicionales
-    expect(body.Success).toBe(false); // Cambia la expectativa a false
-    expect(body.Code).toBe(-2146233088);
-    expect(body.UserError).toBe('');
-    expect(body.ExceptionMessage).toBe('Este correo ya ha sido utilizado');
-    expect(body.Response).toBeNull();
-    expect(body.Message.Content).toBe('Este correo ya ha sido utilizado');
-    expect(body.Message.Title).toBe('Details');
+    expect(body.success).toBe(true);
+    expect(body.code).toBe(200);
+    expect(body.userError).toBe('');
+    expect(body.exceptionMessage).toBe('');
+    expect(body.response).toBe('Código enviado');
+    expect(body.message).toBeNull();
   } catch (error) {
     console.error('Error during registration flow:', error);
     throw error;
   }
 });
 
-// Función para construir los payloads necesarios para el flujo con correo duplicado
-function buildDuplicateEmailPayload() {
+// Función para construir los payloads necesarios para el flujo
+function buildRegistrationFlowPayload() {
   return {
     nip: {
-      phoneNumbSMS: '5664687979',
+      phoneNumbSMS: '5533176234',
       lada: '52',
       channel: 'web',
       message: null,
       attempts: 1
     },
     checkNip: {
-      PhoneNumber: '525664687979'
+      PhoneNumber: '525533176234'
     },
     register: {
-      Email: 'testautomatizadas@test.com',
+      Email: 'testnuevoregistro@test.com',
       Password: 'a184712a824240be01cac45109027e926f730825c7a3ddd277cce1c532179462',
       ConfirmPassword: 'a184712a824240be01cac45109027e926f730825c7a3ddd277cce1c532179462',
       User: {
-        Name: 'Jesus',
-        LastName: 'Gonzalez',
+        Name: 'Manuel',
+        LastName: 'Pineda',
         SecondLastName: 'Zamudio',
         Password: 'a184712a824240be01cac45109027e926f730825c7a3ddd277cce1c532179462',
-        Email: 'testautomatizadas@test.com',
+        Email: 'testnuevoregistro@test.com',
         DateOfBirth: '1900-01-01T00:00:00',
-        PhoneNumber: '5664687979',
+        PhoneNumber: '5533176234',
         Lada: 14,
         Gender: 'O',
         Channel: 'APP',
         Country: 'MX',
         DoNotContactFlag: true,
         DoNotEmailFlag: true,
-        UserName: 'testautomatizadas@test.com',
+        UserName: 'testnuevoregistro@test.com',
         IsActiveUser: false,
         IsLogged: false
       },
@@ -77,7 +82,7 @@ async function registerAttempt(apiClient, payload, expect, expectedStatus) {
     }
     const body = await response.json();
     console.log('Register Attempt Response Body:', body);
-    expect(body.Success).toBe(false); // Cambia la expectativa a false
+    expect(body.success).toBe(expectedStatus === 200);
     return response;
   } catch (error) {
     console.error('Error during register attempt:', error);

@@ -14,7 +14,7 @@ La estructura está organizada por capas de responsabilidad. Exposicón de las A
 
 # 📂 Estructura General
 
-qa-automation/
+arquetipoplaywright/
 │
 ├── .gitignore
 ├── package.json
@@ -31,25 +31,40 @@ qa-automation/
 │   │
 │   ├── helpers/                   # Utilidades reutilizables
 │   │   ├── auth.manager.js
+│   │   ├── member.flow.js
 │   │   └── validateSchema.js
 │   │
 │   ├── schemas/                   # JSON Schemas por servicio
 │   │   ├── catalogs.schema.js
-│   │   ├── member.schema.js
-│   │   └── invoice.schema.js
+│   │   ├── member.activate-email.schema.js
+│   │   ├── member.check-nip.schema.js
+│   │   ├── member.nip.schema.js
+│   │   └── member.register.schema.js
 │   │
 │   ├── smoke/                     # Validaciones mínimas críticas
 │   │   ├── auth.smoke.spec.js
-│   │   └── catalogs.smoke.spec.js
+│   │   ├── catalogs.smoke.spec.js
+│   │   ├── member.activate-email.smoke.spec.js
+│   │   ├── member.check-nip.smoke.spec.js
+│   │   └── member.nip.smoke.spec.js
 │   │
 │   ├── contracts/                 # Validación estructural
-│   │   └── catalogs.contract.spec.js
+│   │   ├── catalogs.contract.spec.js
+│   │   ├── member.activate-email.contract.spec.js
+│   │   ├── member.check-nip.contract.spec.js
+│   │   ├── member.nip.contract.spec.js
+│   │   └── member.register.contract.spec.js
 │   │
 │   ├── regression/                # Validación funcional profunda
-│   │   └── catalogs.regression.spec.js
+│   │   ├── catalogs.regression.spec.js
+│   │   ├── member.activate-email.regression.spec.js
+│   │   ├── member.check-nip.regression.spec.js
+│   │   ├── member.nip.regression.spec.js
+│   │   ├── member.register.regression.spec.js
+│   │   └── member.registerpass.regression.spec.js
 │   │
 │   ├── integration/               # Flujos multi-endpoint
-│   │   └── catalogs.integration.spec.js
+│   │   └── member.full-registration.integration.spec.js
 │   │
 │   └── test-data/                 # Datos reutilizables
 │       ├── members.json
@@ -71,8 +86,6 @@ qa-automation/
 │       └── ui.fixture.js
 │
 └── reports/                       # Reportes generados
-
----
 
 ---
 
@@ -355,17 +368,34 @@ Esto permite:
 
 ---
 
-# 🚀 Próximos pasos recomendados
+Regla de Oro, automatiza lo que:
 
-- Crear carpeta integration/
-- Separar por dominio (member, invoice, etc.)
-- Implementar multi‑ambiente
-- Implementar multi‑usuario
-- npx playwright test services-tests/member/smoke/member.check-nip.smoke.spec.js
-npx playwright test services-tests/member/contracts/member.check-nip.contract.spec.js
-npx playwright test services-tests/member/regression/member.check-nip.regression.spec.js
+✅ Se ejecuta frecuentemente
+✅ Es crítico
+✅ Es estable
+✅ Es repetible
+✅ Tiene alto riesgo
 
-npx playwright test services-tests/member/smoke/member.nip.smoke.spec.js
-npx playwright test services-tests/member/regression/member.register.regression.spec.js
+# 🕒 Cuándo Automatizar Servicios vs. UI
 
+## Servicios (API)
+- Cuando necesitas validar la lógica de negocio y reglas de validación.
+- Para pruebas de regresión rápidas y confiables.
+- Cuando la interfaz de usuario no está lista o es inestable.
+- Para validar contratos y estructuras de datos.
+- **Flujos repetitivos:** Automatizar procesos que se ejecutan frecuentemente y requieren consistencia.
+- **Flujos de negocio críticos:** Asegurar que las operaciones clave del negocio funcionen correctamente.
 
+## UI
+- Cuando necesitas validar la experiencia del usuario final.
+- Para pruebas de flujo de usuario completo.
+- Cuando la interfaz de usuario es estable y representa el flujo real del usuario.
+- Para validar interacciones visuales y de navegación.
+- **Interacciones complejas:** Automatizar escenarios donde la interacción del usuario es crítica.
+- **Validaciones visuales:** Asegurar que la interfaz se muestre correctamente en diferentes dispositivos y navegadores.
+
+---
+
+# Autor
+
+**Jesús Manuel González Zamudio**

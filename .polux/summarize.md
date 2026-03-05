@@ -57,14 +57,15 @@ services-tests/member/contracts/member.check-nip.contract.spec.js
 services-tests/member/contracts/member.nip.contract.spec.js
 services-tests/member/contracts/member.register.contract.spec.js
 services-tests/member/integration/member.full-registration.integration.spec.js
+services-tests/member/regression/member.activate-email.regression.spec.js
 services-tests/member/regression/member.check-nip.regression.spec.js
 services-tests/member/regression/member.nip.regression.spec.js
 services-tests/member/regression/member.register.regression.spec.js
+services-tests/member/regression/member.registerpass.regression.spec.js
 services-tests/member/smoke/auth.smoke.spec.js
 services-tests/member/smoke/member.activate-email.smoke.spec.js
 services-tests/member/smoke/member.check-nip.smoke.spec.js
 services-tests/member/smoke/member.nip.smoke.spec.js
-services-tests/member/smoke/member.register.smoke.spec.js
 services-tests/schemas/catalogs.schema.js
 services-tests/schemas/member.activate-email.schema.js
 services-tests/schemas/member.check-nip.schema.js
@@ -74,6 +75,49 @@ ui-tests/tests/login/login.spec.js
 ```
 
 # Files
+
+## File: services-tests/member/regression/member.registerpass.regression.spec.js
+```javascript
+test('Register - válido', async ({ apiClient }) => {
+const payloads = buildRegistrationFlowPayload();
+⋮----
+await generateNip(apiClient, payloads.nip, expect);
+await checkNip(apiClient, payloads.checkNip, expect);
+const response = await registerAttempt(apiClient, payloads.register, expect, 200);
+expect(response.status()).toBe(200);
+const body = await response.json();
+console.log('Response Body:', body);
+expect(body.success).toBe(true);
+expect(body.code).toBe(200);
+expect(body.userError).toBe('');
+expect(body.exceptionMessage).toBe('');
+expect(body.response).toBe('Código enviado');
+expect(body.message).toBeNull();
+⋮----
+console.error('Error during registration flow:', error);
+⋮----
+function buildRegistrationFlowPayload() {
+⋮----
+async function registerAttempt(apiClient, payload, expect, expectedStatus) {
+⋮----
+const response = await apiClient.post('/api/identity/register-attempt', payload);
+if (response.status() !== expectedStatus) {
+console.error('Failed to register attempt:', await response.text());
+throw new Error('Failed to register attempt');
+⋮----
+console.log('Register Attempt Response Body:', body);
+expect(body.success).toBe(expectedStatus === 200);
+⋮----
+console.error('Error during register attempt:', error);
+```
+
+## File: .gitignore
+```
+node_modules/
+.env
+playwright-report/
+test-results/
+```
 
 ## File: services-tests/catalogs/contracts/catalogs.contract.spec.js
 ```javascript
@@ -109,13 +153,14 @@ const body = await response.json();
 expect(body.success).toBe(true);
 ```
 
-## File: services-tests/helpers/member.flow.js
+## File: services-tests/helpers/validateSchema.js
 ```javascript
-export async function prepareValidRegistration(apiClient, payloads) {
-const nipRes = await generateNip(apiClient, payloads.nip);
-const nipBody = await nipRes.json();
-await checkNip(apiClient, payloads.checkNip);
-const registerRes = await registerAttempt(apiClient, payloads.register);
+const ajv = new Ajv({ allErrors: true });
+export function validateSchema(schema, data) {
+const validate = ajv.compile(schema);
+const valid = validate(data);
+⋮----
+console.error('Schema validation errors:', validate.errors);
 ```
 
 ## File: services-tests/member/contracts/member.activate-email.contract.spec.js
@@ -168,38 +213,6 @@ const valid = validateSchema(registerSchema, body);
 expect(valid).toBe(true);
 ```
 
-## File: services-tests/member/integration/member.full-registration.integration.spec.js
-```javascript
-test('Integration - Registro completo', async ({ apiClient }) => {
-const payloads = buildRegistrationFlowPayload();
-await generateNip(apiClient, payloads.nip);
-await checkNip(apiClient, payloads.checkNip);
-await registerAttempt(apiClient, payloads.register);
-await activateEmail(apiClient, payloads.email);
-const completeRes = await completeRegister(apiClient, payloads.complete);
-expect(completeRes.status()).toBe(200);
-⋮----
-function buildRegistrationFlowPayload() {
-⋮----
-async function generateNip(apiClient, payload) {
-const response = await apiClient.post('/api/outsider/register/sms/nip', payload);
-expect(response.status()).toBe(200);
-const body = await response.json();
-expect(body.success).toBe(true);
-⋮----
-async function checkNip(apiClient, payload) {
-const response = await apiClient.post('/api/support/recovery/nip', payload);
-⋮----
-async function registerAttempt(apiClient, payload) {
-const response = await apiClient.post('/api/identity/register-attempt', payload);
-⋮----
-async function activateEmail(apiClient, payload) {
-const response = await apiClient.get(`/api/support/client/activation-code/${payload.email}`, {
-⋮----
-async function completeRegister(apiClient, payload) {
-const response = await apiClient.post('/api/identity/complete-registration', payload);
-```
-
 ## File: services-tests/member/regression/member.check-nip.regression.spec.js
 ```javascript
 test('Regression - Verificar NIP con diferentes escenarios', async ({ apiClient }) => {
@@ -210,6 +223,7 @@ expect(response.status()).toBe(200);
 const body = await response.json();
 expect(body.success).toBe(true);
 expect(body.code).toBe(200);
+expect(body.exceptionMessage).toBe('');
 expect(typeof body.response).toBe('string');
 expect(body.response).toMatch(/^\d{4}$/);
 ```
@@ -231,53 +245,6 @@ expect(body.ExceptionMessage).toContain('ya está asociado');
 expect(body.Code).toBeLessThan(0);
 ```
 
-## File: services-tests/member/regression/member.register.regression.spec.js
-```javascript
-test('Register - válido', async ({ apiClient }) => {
-const payloads = buildRegistrationFlowPayload();
-⋮----
-await generateNip(apiClient, payloads.nip);
-await checkNip(apiClient, payloads.checkNip);
-const response = await registerAttempt(apiClient, payloads.register);
-expect(response.status()).toBe(200);
-const body = await response.json();
-console.log('Response Body:', body);
-expect(body.success).toBe(true);
-expect(body.code).toBe(200);
-expect(body.userError).toBe('');
-expect(body.exceptionMessage).toBe('');
-expect(body.response).toBe('Código enviado');
-expect(body.message).toBeNull();
-⋮----
-console.error('Error during registration flow:', error);
-⋮----
-function buildRegistrationFlowPayload() {
-⋮----
-async function generateNip(apiClient, payload) {
-const response = await apiClient.post('/api/outsider/register/sms/nip', payload);
-if (response.status() !== 200) {
-console.error('Failed to generate NIP:', await response.text());
-throw new Error('Failed to generate NIP');
-⋮----
-console.log('NIP Response Body:', body);
-⋮----
-async function checkNip(apiClient, payload) {
-const response = await apiClient.post('/api/support/recovery/nip', payload, {
-⋮----
-console.error('Failed to check NIP:', await response.text());
-throw new Error('Failed to check NIP');
-⋮----
-console.log('Check NIP Response Body:', body);
-⋮----
-async function registerAttempt(apiClient, payload) {
-const response = await apiClient.post('/api/identity/register-attempt', payload);
-⋮----
-console.error('Failed to register attempt:', await response.text());
-throw new Error('Failed to register attempt');
-⋮----
-console.log('Register Attempt Response Body:', body);
-```
-
 ## File: services-tests/member/smoke/auth.smoke.spec.js
 ```javascript
 test('Smoke - Autenticación funcional', async ({ apiClient }) => {
@@ -296,17 +263,6 @@ expect(body.success).toBe(true);
 expect(body.code).toBe(200);
 expect(body.userError).toBe('');
 expect(body.exceptionMessage).toBe('');
-// Validar que la respuesta contenga un array de códigos de validación
-expect(Array.isArray(body.response)).toBe(true);
-expect(body.response.length).toBeGreaterThan(0);
-// Validar el primer elemento del array
-⋮----
-expect(typeof firstValidation.id).toBe('number');
-expect(typeof firstValidation.validationCode).toBe('string');
-expect(typeof firstValidation.creationDate).toBe('string');
-expect(typeof firstValidation.updateDate).toBe('string');
-expect(firstValidation.email).toBe('testnuevoregistro@test.com');
-expect(firstValidation.channel).toBe('APP');
 ```
 
 ## File: services-tests/member/smoke/member.check-nip.smoke.spec.js
@@ -317,12 +273,6 @@ const response = await apiClient.post('/api/support/recovery/nip', {
 const status = response.status();
 const body = await response.json();
 expect(status).toBe(200);
-expect(body.success).toBe(true);
-expect(body.code).toBe(200);
-expect(body.userError).toBe('');
-expect(body.exceptionMessage).toBe('');
-expect(typeof body.response).toBe('string');
-expect(body.response).toMatch(/^\d{4}$/);
 ```
 
 ## File: services-tests/member/smoke/member.nip.smoke.spec.js
@@ -340,21 +290,9 @@ expect(body.userError).toBe('AddPhone');
 expect(body.exceptionMessage).toBe('');
 ```
 
-## File: services-tests/member/smoke/member.register.smoke.spec.js
+## File: services-tests/schemas/catalogs.schema.js
 ```javascript
-test('Smoke - Registro funcional', async ({ apiClient }) => {
-const response = await apiClient.post('/api/identity/register-attempt', {
-⋮----
-const status = response.status();
-const body = await response.json();
-console.log('Response Body:', body);
-expect(response.status()).toBe(200);
-expect(body.success).toBe(true);
-expect(body.code).toBe(200);
-expect(body.userError).toBe('');
-expect(body.exceptionMessage).toBe('');
-expect(body.response).toBe('Código enviado');
-expect(body.message).toBeNull();
+
 ```
 
 ## File: services-tests/schemas/member.activate-email.schema.js
@@ -377,12 +315,14 @@ expect(body.message).toBeNull();
 
 ```
 
-## File: .gitignore
-```
-node_modules/
-.env
-playwright-report/
-test-results/
+## File: ui-tests/tests/login/login.spec.js
+```javascript
+test('User can login successfully', async ({ page }) => {
+await page.goto('/');
+await page.fill('#username', 'testuser');
+await page.fill('#password', 'password123');
+await page.click('button[type="submit"]');
+await expect(page).toHaveURL('/dashboard');
 ```
 
 ## File: package.json
@@ -440,34 +380,152 @@ return this.request.delete(path, {
 _headers() {
 ```
 
-## File: services-tests/helpers/validateSchema.js
+## File: services-tests/helpers/auth.manager.js
 ```javascript
-const ajv = new Ajv({ allErrors: true });
-export function validateSchema(schema, data) {
-const validate = ajv.compile(schema);
-const valid = validate(data);
+export async function getCachedToken(request) {
+const now = Date.now();
 ⋮----
-console.error('Schema validation errors:', validate.errors);
+const response = await request.post(
+⋮----
+if (response.status() !== 200) {
+throw new Error(`Error obteniendo token: ${response.status()}`);
+⋮----
+const body = await response.json();
+⋮----
+throw new Error('No se encontró access_token en la respuesta');
 ```
 
-## File: services-tests/schemas/catalogs.schema.js
+## File: services-tests/helpers/member.flow.js
 ```javascript
-
+export async function generateNip(apiClient, payload, expect) {
+const response = await apiClient.post('/api/outsider/register/sms/nip', payload);
+if (response.status() !== 200) {
+console.error('Failed to generate NIP:', await response.text());
+throw new Error('Failed to generate NIP');
+⋮----
+const body = await response.json();
+console.log('NIP Response Body:', body);
+expect(body.success).toBe(true);
+⋮----
+export async function checkNip(apiClient, payload, expect) {
+const response = await apiClient.post('/api/support/recovery/nip', payload, {
+⋮----
+console.error('Failed to check NIP:', await response.text());
+throw new Error('Failed to check NIP');
+⋮----
+console.log('Check NIP Response Body:', body);
 ```
 
-## File: ui-tests/tests/login/login.spec.js
+## File: services-tests/member/integration/member.full-registration.integration.spec.js
 ```javascript
-test('User can login successfully', async ({ page }) => {
-await page.goto('/');
-await page.fill('#username', 'testuser');
-await page.fill('#password', 'password123');
-await page.click('button[type="submit"]');
-await expect(page).toHaveURL('/dashboard');
+test('Full Flow - Registro completo con activación de email', async ({ apiClient }) => {
+const payloads = buildFullFlowPayload();
+⋮----
+await generateNip(apiClient, payloads.nip, expect);
+await checkNip(apiClient, payloads.checkNip, expect);
+await registerAttempt(apiClient, payloads.register, expect);
+await activateEmail(apiClient, payloads.activateEmail, expect);
+console.log('Flujo integral completado exitosamente.');
+⋮----
+console.error('Error during full flow:', error);
+⋮----
+function buildFullFlowPayload() {
+⋮----
+async function registerAttempt(apiClient, payload, expect) {
+⋮----
+const response = await apiClient.post('/api/identity/register-attempt', payload);
+if (response.status() !== 200) {
+console.error('Failed to register attempt:', await response.text());
+throw new Error('Failed to register attempt');
+⋮----
+const body = await response.json();
+console.log('Register Attempt Response Body:', body);
+expect(body.success).toBe(true);
+⋮----
+console.error('Error during register attempt:', error);
+⋮----
+async function activateEmail(apiClient, payload, expect) {
+⋮----
+const response = await apiClient.get(`/api/support/client/activation-code/${payload.email}`, {
+⋮----
+console.error('Failed to activate email:', await response.text());
+throw new Error('Failed to activate email');
+⋮----
+console.log('Activate Email Response Body:', body);
+⋮----
+expect(body.code).toBe(200);
+expect(body.userError).toBe('');
+expect(body.exceptionMessage).toBe('');
+// Validar que la respuesta contenga un array de códigos de validación
+expect(Array.isArray(body.response)).toBe(true);
+expect(body.response.length).toBeGreaterThan(0);
+// Validar el primer elemento del array
+⋮----
+expect(typeof firstValidation.id).toBe('number');
+expect(typeof firstValidation.validationCode).toBe('string');
+expect(typeof firstValidation.creationDate).toBe('string');
+expect(typeof firstValidation.updateDate).toBe('string');
+expect(firstValidation.email).toBe(payload.email);
+expect(firstValidation.channel).toBe('APP');
+⋮----
+console.error('Error during email activation:', error);
 ```
 
-## File: playwright.config.js
+## File: services-tests/member/regression/member.activate-email.regression.spec.js
 ```javascript
-export default defineConfig({
+test('Smoke - Activar email correctamente', async ({ apiClient }) => {
+const response = await apiClient.get('/api/support/client/activation-code/testnuevoregistro@test.com', {
+⋮----
+expect(response.status()).toBe(200);
+const body = await response.json();
+expect(body.success).toBe(true);
+expect(body.code).toBe(200);
+expect(body.userError).toBe('');
+expect(body.exceptionMessage).toBe('');
+// Validar que la respuesta contenga un array de códigos de validación
+expect(Array.isArray(body.response)).toBe(true);
+expect(body.response.length).toBeGreaterThan(0);
+// Validar el primer elemento del array
+⋮----
+expect(typeof firstValidation.id).toBe('number');
+expect(typeof firstValidation.validationCode).toBe('string');
+expect(typeof firstValidation.creationDate).toBe('string');
+expect(typeof firstValidation.updateDate).toBe('string');
+expect(firstValidation.email).toBe('testnuevoregistro@test.com');
+expect(firstValidation.channel).toBe('APP');
+```
+
+## File: services-tests/member/regression/member.register.regression.spec.js
+```javascript
+test('Register - correo electrónico ya utilizado', async ({ apiClient }) => {
+const payloads = buildDuplicateEmailPayload();
+⋮----
+const response = await registerAttempt(apiClient, payloads.register, expect, 404);
+expect(response.status()).toBe(404);
+const body = await response.json();
+console.log('Response Body:', body);
+expect(body.Success).toBe(false);
+expect(body.Code).toBe(-2146233088);
+expect(body.UserError).toBe('');
+expect(body.ExceptionMessage).toBe('Este correo ya ha sido utilizado');
+expect(body.Response).toBeNull();
+expect(body.Message.Content).toBe('Este correo ya ha sido utilizado');
+expect(body.Message.Title).toBe('Details');
+⋮----
+console.error('Error during registration flow:', error);
+⋮----
+function buildDuplicateEmailPayload() {
+⋮----
+async function registerAttempt(apiClient, payload, expect, expectedStatus) {
+⋮----
+const response = await apiClient.post('/api/identity/register-attempt', payload);
+if (response.status() !== expectedStatus) {
+console.error('Failed to register attempt:', await response.text());
+throw new Error('Failed to register attempt');
+⋮----
+console.log('Register Attempt Response Body:', body);
+⋮----
+console.error('Error during register attempt:', error);
 ```
 
 ## File: README.md
@@ -852,17 +910,7 @@ const client = new ApiClient(request, token);
 await use(client);
 ```
 
-## File: services-tests/helpers/auth.manager.js
+## File: playwright.config.js
 ```javascript
-export async function getCachedToken(request) {
-const now = Date.now();
-⋮----
-const response = await request.post(
-⋮----
-if (response.status() !== 200) {
-throw new Error(`Error obteniendo token: ${response.status()}`);
-⋮----
-const body = await response.json();
-⋮----
-throw new Error('No se encontró access_token en la respuesta');
+export default defineConfig({
 ```
