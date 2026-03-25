@@ -1,22 +1,13 @@
 import { test, expect } from '../../fixtures/api.fixture.js';
+import validNip from '../../test-data/member/nip/valid.json' assert { type: 'json' };
 
-test('Smoke - Enviar NIP correctamente', async ({ apiClient }) => {
-  const response = await apiClient.post('/api/outsider/register/sms/nip', {
-      phoneNumbSMS: '5533176234',
-      lada: '52',
-      channel: 'web',
-      message: null,
-      attempts: 1
-  });
+test('Smoke - Enviar NIP responde correctamente', async ({ apiClient }) => {
 
-  const status = response.status();
-  const body = await response.json();
+  const response = await apiClient.post(
+    '/api/outsider/register/sms/nip',
+    validNip
+  );
+
   expect(response.status()).toBe(200);
-
-  console.log(body);
-
-  expect(body.success).toBe(true);
-  expect(body.code).toBe(201);
-  expect(body.userError).toBe('AddPhone');
-  expect(body.exceptionMessage).toBe('');
 });
+

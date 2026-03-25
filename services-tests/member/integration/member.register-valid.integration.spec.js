@@ -1,19 +1,17 @@
-// services-tests/member/contracts/member.register.contract.spec.js
 import { test, expect } from '../../fixtures/api.fixture.js';
-import { registerSchema } from '../../schemas/member.register.schema.js';
-import { validateSchema } from '../../helpers/validateSchema.js';
 import flowData from '../../test-data/member/register/register-valid.json' assert { type: 'json' };
 
-test('Contract - Validar contrato de respuesta de registro', async ({ apiClient }) => {
+test('Integration - Registro válido completo', async ({ apiClient }) => {
+
   // 1️⃣ Generar NIP
     const nipResponse = await apiClient.post(
         '/api/outsider/register/sms/nip',
         flowData.nip
     );
 
-    //console.log('NIP Status:', nipResponse.status());
+   // console.log('NIP Status:', nipResponse.status());
     const nipRaw = await nipResponse.text();
-    //console.log('NIP Raw:', nipRaw);
+   // console.log('NIP Raw:', nipRaw);
 
     expect(nipResponse.status()).toBe(200);
 
@@ -31,7 +29,7 @@ test('Contract - Validar contrato de respuesta de registro', async ({ apiClient 
 
     //console.log('Check Status:', checkResponse.status());
     const checkRaw = await checkResponse.text();
-    //console.log('Check Raw:', checkRaw);
+   // console.log('Check Raw:', checkRaw);
 
     expect(checkResponse.status()).toBe(200);
 
@@ -43,11 +41,16 @@ test('Contract - Validar contrato de respuesta de registro', async ({ apiClient 
     '/api/identity/register-attempt',
     flowData.register
   );
+
   expect(registerResponse.status()).toBe(200);
 
-  const body = await registerResponse.json();
-  //console.log('REGISTER BODY:\n', JSON.stringify(body, null, 2));
-  const valid = validateSchema(registerSchema, body);
+  const registerBody = await registerResponse.json();
+  //console.log('REGISTER BODY:\n', JSON.stringify(registerBody, null, 2));
+  expect(registerBody.success).toBe(true);
+  expect(registerBody.code).toBe(200);
+  expect(registerBody.userError).toBe('');
+  expect(registerBody.exceptionMessage).toBe('');
+  expect(registerBody.response).toBe('Código enviado');
+  expect(registerBody.message).toBeNull();
 
-  expect(valid).toBe(false);
 });

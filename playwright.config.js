@@ -9,21 +9,45 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
 
-  projects: [
+  reporter: [
+      ['list'],
+      ['html', { outputFolder: 'reports/services', open: 'always' }]
+    ],
+
+    projects: [
     {
       name: 'smoke',
-      testMatch: /smoke\/.*\.spec\.js/
+      testMatch: /\/smoke\/.*\.spec\.js/
     },
     {
       name: 'contracts',
-      testMatch: /member\.nip\.contract/,
+      testMatch: /\/contracts\/.*\.spec\.js/
     },
     {
       name: 'regression',
-      testMatch: /regression\/.*\.spec\.js/,
+      testMatch: /\/regression\/.*\.spec\.js/
     },
     {
       name: 'integration',
-      testMatch: /integration\/.*\.spec\.js/,
-    }]
+      testMatch: /\/integration\/.*\.spec\.js/
+    }
+  ]
+
+  // projects: [
+  //   {
+  //     name: 'smoke',
+  //     testMatch: /smoke\/.*\.spec\.js/
+  //   },
+  //   {
+  //     name: 'contracts',
+  //     testMatch: /member\/.*\.spec\.js/,
+  //   },
+  //   {
+  //     name: 'regression',
+  //     testMatch: /regression\/.*\.spec\.js/,
+  //   },
+  //   {
+  //     name: 'integration',
+  //     testMatch: /integration\/.*\.spec\.js/,
+  //   }]
 });

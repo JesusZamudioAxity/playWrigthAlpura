@@ -1,6 +1,6 @@
-
 export const nipSchema = {
   type: 'object',
+  additionalProperties: false,
   properties: {
     code: { type: 'number' },
     userError: { type: 'string' },
@@ -8,6 +8,7 @@ export const nipSchema = {
     success: { type: 'boolean' },
     response: {
       type: 'object',
+      additionalProperties: false,
       properties: {
         shippingChannel: { type: 'string' },
         operatorPhone: { type: 'string' },

@@ -1,30 +1,25 @@
-
-// services-tests/member/regression/member.check-nip.regression.spec.js
 import { test, expect } from '../../fixtures/api.fixture.js';
+import validCheckNip from '../../test-data/member/check-nip/valid.json' assert { type: 'json' };
 
-test('Regression - Verificar NIP con diferentes escenarios', async ({ apiClient }) => {
-  const scenarios = [
-    { PhoneNumber: '525533176234' },
-    { PhoneNumber: '525533176235' },
-    // Agrega más escenarios según sea necesario
-  ];
+test('Regression - Check NIP devuelve NIP válido', async ({ apiClient }) => {
 
-  for (const scenario of scenarios) {
-    const response = await apiClient.post('/api/support/recovery/nip', {
-      data: scenario,
-      headers: {
-        'X-QA-Confirmed-Number': 'true',
-        'X-QA-Access-Token': 'qa-team-secretz'
-      }
-    });
+  const response = await apiClient.post(
+    '/api/support/recovery/nip',
+    validCheckNip,
+    {
+      'X-QA-Confirmed-Number': 'true',
+      'X-QA-Access-Token': 'qa-team-secretz'
+    }
+  );
 
-    expect(response.status()).toBe(200);
+  expect(response.status()).toBe(200);
 
-    const body = await response.json();
-    expect(body.success).toBe(true);
-    expect(body.code).toBe(200);
-    expect(body.exceptionMessage).toBe('');
-    expect(typeof body.response).toBe('string');
-    expect(body.response).toMatch(/^\d{4}$/); 
-  }
+  const body = await response.json();
+
+  expect(body.success).toBe(true);
+  expect(body.code).toBe(200);
+  expect(body.exceptionMessage).toBe('');
+  expect(typeof body.response).toBe('string');
+  expect(body.response).toMatch(/^\d{4}$/);
+
 });

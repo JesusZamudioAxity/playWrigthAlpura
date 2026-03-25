@@ -1,0 +1,26 @@
+{
+  "register": {
+    "Email": "testautomatizadas@test.com",
+    "Password": "a184712a824240be01cac45109027e926f730825c7a3ddd277cce1c532179462",
+    "ConfirmPassword": "a184712a824240be01cac45109027e926f730825c7a3ddd277cce1c532179462",
+    "User": {
+      "Name": "Jesus",
+      "LastName": "Gonzalez",
+      "SecondLastName": "Zamudio",
+      "Password": "a184712a824240be01cac45109027e926f730825c7a3ddd277cce1c532179462",
+      "Email": "testautomatizadas@test.com",
+      "DateOfBirth": "1900-01-01T00:00:00",
+      "PhoneNumber": "5664687979",
+      "Lada": 14,
+      "Gender": "O",
+      "Channel": "APP",
+      "Country": "MX",
+      "DoNotContactFlag": true,
+      "DoNotEmailFlag": true,
+      "UserName": "testautomatizadas@test.com",
+      "IsActiveUser": false,
+      "IsLogged": false
+    },
+    "Card": null
+  }
+}

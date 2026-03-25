@@ -88,6 +88,30 @@ arquetipoplaywright/
 └── reports/                       # Reportes generados
 
 ---
+# Instalación y Configuración
+
+## 1️⃣ Clonar el repositorio
+git clone <repo-url>
+cd arquetipoplaywright
+
+## 2️⃣ Instalar dependencias
+npm install
+### Instalar Playwright (si es la primera vez)
+npx playwright install
+
+## 3️⃣
+npm run verify
+
+# 🛠 Scripts Disponibles
+
+| Comando | Descripción |
+|----------|------------|
+| `npm run verify` | Verifica que el entorno esté correctamente configurado (ejecuta smoke) |
+| `npm run smoke` | Ejecuta pruebas Smoke |
+| `npm run contracts` | Ejecuta pruebas de contrato |
+| `npm run regression` | Ejecuta pruebas de regresión |
+| `npm run integration` | Ejecuta pruebas de integración |
+---
 
 # 🔹 Raíz del Proyecto
 
@@ -230,8 +254,7 @@ Tipos de casos:
 ✅ Servicio principal responde  
 
 No se valida:
-❌ Lógica compleja  
-❌ Edge cases  
+❌ Lógica compleja   
 ❌ Validaciones profundas  
 
 
@@ -250,7 +273,7 @@ Aquí se validan:
 
 ---
 
-# 📂 services-tests/integration/  ✅ (Debe agregarse)
+# 📂 services-tests/integration/ 
 
 Responsabilidad:
 - Validar flujos completos entre servicios.
