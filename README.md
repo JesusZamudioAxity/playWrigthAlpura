@@ -113,6 +113,47 @@ npm run verify
 | `npm run integration` | Ejecuta pruebas de integración |
 ---
 
+# ⚠️ Consideraciones Importantes sobre Datos de Prueba
+
+## 📱 Uso de Números Telefónicos
+
+Los endpoints relacionados con NIP y recuperación de cuenta envían notificaciones reales (SMS / llamada / WhatsApp).
+
+Por lo tanto:
+
+✅ **Solo deben utilizarse números telefónicos de prueba o controlados por el equipo QA.**  
+❌ No se deben utilizar números personales o productivos.  
+
+---
+
+## 🎯 Reglas para el uso de datos controlados
+
+- Los números utilizados en:
+  - `/api/outsider/register/sms/nip`
+  - `/api/support/recovery/nip`
+- Deben estar previamente autorizados para pruebas.
+- Deben estar configurados en el backend como números QA.
+- No deben generar impactos a usuarios reales.
+
+---
+
+## 📧 Uso de Correos Electrónicos
+
+- Los correos electrónicos utilizados en los flujos de registro deben ser:
+  - Cuentas de prueba
+  - Cuentas controladas por QA
+  - No asociadas a usuarios reales
+
+---
+
+## 🚫 Riesgos si no se respeta esta regla
+
+- Envío de SMS reales a terceros
+- Contaminación de datos en ambiente QA
+- Posible impacto reputacional
+
+---
+
 # 🔹 Raíz del Proyecto
 
 ## package.json
