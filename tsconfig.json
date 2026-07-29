@@ -21,26 +21,3 @@
     "playwright.config.ts"
   ]
 }
-/*{
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "lib": ["ES2020", "DOM"],
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "types": ["node", "@playwright/test"],
-    "paths": {
-      "@core/*": ["./core/*"],
-      "@domains/*": ["./domains/*"]
-    }
-  },
-  "include": [
-    "core",
-    "domains",
-    "playwright.config.ts"
-  ]
-}*/

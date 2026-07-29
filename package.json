@@ -12,24 +12,21 @@
   "test:regression": "playwright test --grep @regression",
   "test:contract": "playwright test --grep @contract",
   "test:negative": "playwright test --grep @negative",
-
-
+  
   "test:api": "playwright test --grep @api",
   "test:ui": "playwright test --grep @ui",
-
-
+  
   "test:usuarios": "playwright test domains/usuarios",
-  "test:usuarios:api": "playwright test domains/usuarios/api",
+  
+  "test:ui-mode": "playwright test --ui",
+  "test:headed": "playwright test --headed",
+  "report": "playwright show-report",
 
+  "test:usuarios:api": "playwright test domains/usuarios/api",
   "test:usuarios:smoke": "playwright test domains/usuarios --grep @smoke",
   "test:usuarios:integration": "playwright test domains/usuarios --grep @integration",
   "test:usuarios:regression": "playwright test domains/usuarios --grep @regression",
-  "test:usuarios:contract": "playwright test domains/usuarios --grep @contract",
-
-
-  "test:ui-mode": "playwright test --ui",
-  "test:headed": "playwright test --headed",
-  "report": "playwright show-report"
+  "test:usuarios:contract": "playwright test domains/usuarios --grep @contract"
   },
   "keywords": [],
   "author": "",
