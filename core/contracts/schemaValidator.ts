@@ -8,15 +8,6 @@ export function validateSchema(schema: object, data: any) {
   const validate = ajv.compile(schema);
   const valid = validate(data);
 
-  /*if (!valid) {
-    console.error('Schema validation errors:', validate.errors);
-    throw new Error('Contract validation failed');
-  }*/
- /*if (!valid) {
-    const errors = JSON.stringify(validate.errors, null, 2);
-    throw new Error(`Contract validation failed:\n${errors}`);
-  }*/
-
   if (!valid && validate.errors) {
     const formattedErrors = validate.errors.map(err => {
       const field = err.instancePath || 'root';
@@ -38,7 +29,6 @@ export function validateSchema(schema: object, data: any) {
 
     throw new Error(`Contract validation failed:\n${formattedErrors.join('\n')}`);
   }
-
-
+  
   return true;
 }

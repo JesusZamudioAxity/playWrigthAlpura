@@ -6,20 +6,28 @@ export const ENV = process.env.ENV || 'qa';
 
 const environments = {
   dev: {
-    baseURL: process.env.DEV_BASE_URL,
+    apiBaseURL: process.env.DEV_API_BASE_URL,
+    webBaseURL: process.env.DEV_WEB_BASE_URL,
   },
   qa: {
-    baseURL: process.env.QA_BASE_URL,
+    apiBaseURL: process.env.QA_API_BASE_URL,
+    webBaseURL: process.env.QA_WEB_BASE_URL,
   },
   uat: {
-    baseURL: process.env.UAT_BASE_URL,
+    apiBaseURL: process.env.UAT_API_BASE_URL,
+    webBaseURL: process.env.UAT_WEB_BASE_URL,
   },
 };
 
-export const BASE_URL = environments[ENV as keyof typeof environments].baseURL!;
+export const API_BASE_URL =
+  environments[ENV as keyof typeof environments].apiBaseURL!;
+
+export const WEB_BASE_URL =
+  environments[ENV as keyof typeof environments].webBaseURL!;
 
 console.log('ENV:', ENV);
-console.log('BASE_URL:', BASE_URL);
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('WEB_BASE_URL:', WEB_BASE_URL);
 
 export const DB_CONFIG = {
   host: process.env.DB_HOST,

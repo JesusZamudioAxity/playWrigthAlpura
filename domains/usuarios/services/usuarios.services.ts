@@ -53,31 +53,3 @@ export async function crearUsuariosConArray(data: any[]) {
   const api = await getApi();
   return api.post('/user/createWithArray', data);
 }
-
-
-/*import { getApiContext } from '../../../core/api/api.client.js';
-
-export async function crearUsuario(data: any) {
-  const api = await getApiContext();
-  return await api.post('/user', { data });
-}
-
-export async function obtenerUsuario(username: string) {
-  const api = await getApiContext();
-  return await api.get(`/user/${username}`);
-}
-
-export async function actualizarUsuario(username: string, data: any) {
-  const api = await getApiContext();
-  return await api.put(`/user/${username}`, { data });
-}
-
-export async function eliminarUsuario(username: string) {
-  const api = await getApiContext();
-  return await api.delete(`/user/${username}`);
-}
-
-export async function loginUsuario(username: string, password: string) {
-  const api = await getApiContext();
-  return await api.get(`/user/login?username=${username}&password=${password}`);
-}*/
