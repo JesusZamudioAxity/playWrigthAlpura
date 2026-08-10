@@ -14,6 +14,46 @@ Este arquetipo soporta pruebas de:
 
 ---
 
+# 🖥 Requisitos del Entorno
+
+## ✅ Node.js 22.23.2
+
+Este proyecto está validado para ejecutarse con **Node.js 22.23.2**.  
+Se recomienda mantener esta versión en todos los entornos locales y de CI/CD para asegurar consistencia y evitar discrepancias entre ejecuciones.
+
+Verificar instalación:
+
+```bash
+node -v 
+
+Debe mostrar: v22.23.2
+
+✅ npm
+Verificar versión: npm -v
+
+✅ TypeScript
+El proyecto utiliza TypeScript como soporte para pruebas, utilerías y configuración.
+
+Verificar: npx tsc -v
+
+✅ Instalación del Proyecto
+Después de clonar el repositorio:
+
+npm install
+npx playwright install
+Ejecutar pruebas:
+
+npm run test
+
+⚠ Consideraciones Importantes
+No actualizar Node sin validar compatibilidad con Playwright y TypeScript.
+No modificar la versión de Playwright sin revisar impacto en la suite.
+No subir reportes, videos ni artefactos generados (reports/, test-results/, *.webm, *.zip).
+Las dependencias críticas deben manejarse preferentemente con versión fija para evitar cambios inesperados.
+Validar siempre la versión instalada de @types/node, ya que no necesariamente coincide con la versión de Node runtime.
+
+---
+
 # 🏗 Estructura General del Proyecto
 
 El framework está organizado bajo una arquitectura limpia basada en:
