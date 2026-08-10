@@ -21,11 +21,7 @@ Este arquetipo soporta pruebas de:
 Este proyecto está validado para ejecutarse con **Node.js 22.23.2**.  
 Se recomienda mantener esta versión en todos los entornos locales y de CI/CD para asegurar consistencia y evitar discrepancias entre ejecuciones.
 
-Verificar instalación:
-
-```bash
-node -v 
-
+Verificar instalación: node -v 
 Debe mostrar: v22.23.2
 
 ✅ npm
